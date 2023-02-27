@@ -94,9 +94,9 @@ ui <- navbarPage(
   ),
   absolutePanel(
     fixed= T,
-    top = 220,
+    top = 120,
     width = "100%",
-    height = "90%",
+    height = "92%",
     sidebarLayout(
 #          "Indicadores",
       sidebarPanel = bsplus::bs_collapse(
@@ -127,23 +127,13 @@ ui <- navbarPage(
 # tabPanel(
 #   "Planos Elab",
   fluidRow(
-     column(3,
-            flashCardOutput("total_elab",width="300px",height="135px")
-  ),
-
-  column(3,
-         flashCardOutput("total_cib",width="300px",height="135px")
-  ),
-  column(3,
-         flashCardOutput("total_plano",width="300px",height="135px")
-  )),
+    column(3,flashCardOutput("total_elab",width="300px",height="205px")),
+    column(3,flashCardOutput("total_cib",width="300px",height="205px"),offset=1),
+    column(3,flashCardOutput("total_plano",width="300px",height="205px"),offset=1)),
+fluidRow(column(12,tags$br()),),
 fluidRow(
-  column(3,
-         flashCardOutput("plano_analise",width="300px",height="135px")
-  ),
-  column(3,
-         flashCardOutput("plano_aprovado",width="300px",height="135px")
-  )),
+  column(3,flashCardOutput("plano_analise",width="300px",height="205px"),offset=2),
+  column(3,flashCardOutput("plano_aprovado",width="300px",height="205px"),offset=1)),
 #  tabPanel(
 #    "Resultados s/ótica MS",
 #    fluidRow(

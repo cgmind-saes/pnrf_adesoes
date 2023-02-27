@@ -29,16 +29,17 @@ body::-webkit-scrollbar-thumb {
   line-height: 0 !important;
 }
 div[id='lateral_filtros'] {
-  
+
     position: absolute !important;
     right: 3px !important;
-    top: -180px !important;
+    top: 0px !important;
     line-height: 0.75em !important;
     background-color: rgba(254, 254, 254, 0.2) !important;
 }
 form[class='well'] {
       background-color: rgba(134, 199, 194, 0.2) !important;
       line-height: 0.75em !important;
+      top: 100px;
 }
 form-group, shiny-input-container {
   line-height: 0.7em;

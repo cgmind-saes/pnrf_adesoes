@@ -26,14 +26,14 @@ fni <- function(x){formatC(as.numeric(x), format="d", big.mark=".", decimal.mark
 
 
 
-pop_estadual <- datasus::ibge_projpop_bruf()
+# pop_estadual <- datasus::ibge_projpop_bruf()
+#
+# pop_estadual <- pop_estadual[c("Unidade da Federação","Total")]
+#
+# pop_estadual  %<>%filter(`Unidade da Federação` != "TOTAL")
+# pop_estadual %<>% separate(`Unidade da Federação`,3,into=c("n_UF","UF"))
 
-pop_estadual <- pop_estadual[c("Unidade da Federação","Total")]
-
-pop_estadual  %<>%filter(`Unidade da Federação` != "TOTAL")
-pop_estadual %<>% separate(`Unidade da Federação`,3,into=c("n_UF","UF"))
-
-
+pop_estadual <- readRDS("dados/popestadual.rds")
 
 minnarm <- function(x) {
   min(x,na.rm=T)

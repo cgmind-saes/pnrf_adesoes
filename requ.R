@@ -1,5 +1,6 @@
 ###Bibliotecas utilizadas
 library(tidyverse)
+library(datasus)
 library(readr)
 library(magrittr)
 library(lubridate)
@@ -22,3 +23,4 @@ library(httr)
 library(janitor)
 library(bsplus)
 library(flashCard)
+library(rjson)
