@@ -59,8 +59,8 @@ names(portes) <- c("Pequeno Porte I","Pequeno Porte II","Médio Porte I","Médio
 c_portes <- c(0,portes)
 
 
-tipos_leitos <- read_csv("dados/sigtap_leitos.csv", col_names = F)[[1]]
-names(tipos_leitos) <- janitor::make_clean_names(read_csv("dados/sigtap_leitos.csv", col_names = F)[[2]])
+# tipos_leitos <- read_csv("dados/sigtap_leitos.csv", col_names = F)[[1]]
+# names(tipos_leitos) <- janitor::make_clean_names(read_csv("dados/sigtap_leitos.csv", col_names = F)[[2]])
 
 
 coretnia <- c(1,2,3,4,5,99)
@@ -69,16 +69,19 @@ names(coretnia) <- c("Branca","Preta","Parda","Amarela","Indígena","Sem informa
 sexos <-  c(1,2)
 names(sexos) <- c("Masculino","Feminino")
 
-lista_capcid_base <- read_csv2("dados/tabela_cid.csv")
+lista_proced_base <- readRDS("dados/lista_procedimentos.rds")
 
 #source("R/paletas.R")
 #source("R/regioes_de_saude.R")
 #source("RR/processamento_inicial.R")
 
-capitulos <- unique(lista_capcid_base$capitulo)
-names(capitulos) <- make_clean_names(unique(lista_capcid_base$cap_nm))
-diagnosticos <- as.factor(unique(lista_capcid_base)$subcat_nm)
-names(diagnosticos) <- make_clean_names(unique(lista_capcid_base$subcat_nm))
+grupo <- read_csv2("dados/grupos_proced.csv")
+names(grupo$CO_GRUPO) <- grupo$NO_GRUPO
+grupo <- grupo$NO_GRUPO
+subgrupos <- readRDS("dados/subgrupos.rds")
+
+procedimentos <- as.factor(lista_proced_base$CO_PROCEDIMENTO)
+names(procedimentos) <- lista_proced_base$NO_PROCEDIMENTO
 
 
 regioes <- as.factor(sort(unique(aih_piccolo$NO_REGIAO)))
@@ -100,7 +103,7 @@ levels(ufsa) <- names(ufsa)
 indicadores <- c("TMP","TMPP","pacientes","diarias","param_tmp")
 
 dims_geradas_ccalc_tmp <- data.frame("codigo" = 1:10,"coluna" = c("periodos","local","indicador","porte","sexo","indi2",
-                                                                  "fx_et","capitulo","capitulo2","especialidade"))
+                                                                  "fx_et","grupo","subgrupo","procedimento"))
 
 filtr_a_cdc <- data.frame(filtro = names(filtros), coldc = c("porte","CO_PACIENTE_SEXO","CO_PACIENTE_RACA_COR","fx_et",
                                                              "capitulo","capitulo2","fx_et_det","NU_ESPECIALIDADE","recorte"))

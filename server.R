@@ -58,12 +58,12 @@ server <- function(input, output, session) {
       label = "Corte Regional",
       width = "100%",
       choices = lista_regioes,
-      selected = lista_regioes[2],
+      selected = NULL,
       multiple = FALSE)
   })#%>%bindCache(filtros())
   #%>%bindCache(input$geral)
 
-  output$corte_especialidade <- renderUI({
+  output$corte_procedimento <- renderUI({
     lista_especialidade <- c("todos",tipos_leitos)
 
 
@@ -118,17 +118,17 @@ server <- function(input, output, session) {
       multiple = FALSE)
   })#%>%bindCache(filtros())
 
-  output$corte_cid <- renderUI({
-    lista_cid <- capitulos
-    # names(lista_cid) <- unique(tabela_cid$cap_nm)
-    lista_cid <- c("todos",lista_cid)
-    names(lista_cid) <- c("",names(lista_cid[-1]))
+  output$corte_subgrupo <- renderUI({
+    lista_subgrupo <- subgrupos
+    # names(lista_subgrupo) <- unique(tabela_subgrupo$cap_nm)
+    lista_subgrupo <- c("todos",lista_subgrupo)
+    names(lista_subgrupo) <- c("",names(lista_subgrupo[-1]))
     selectInput(
-      "corte_cids",
-      label = "Cap. CID",
+      "corte_subgrupo",
+      label = "Subgrupo",
       width = "100%",
-      choices = lista_cid,
-      selected =lista_cid[1],
+      choices = lista_subgrupo,
+      selected =lista_subgrupo[1],
       multiple = FALSE)
   })#%>%bindCache(filtros())
   output$corte_sexo <- renderUI({
@@ -214,21 +214,21 @@ server <- function(input, output, session) {
   })
 
 
-  output$destaque_diagnostico <- renderUI({
-    #         axa <- c("todos",diagnosticos)
-    #         names(axa) <- c("Selecione diagnósticos",str_to_title(diagnosticos))
+  output$destaque_procedimento <- renderUI({
+    #         axa <- c("todos",procedimentos)
+    #         names(axa) <- c("Selecione diagnósticos",str_to_title(procedimentos))
 
     selectizeInput(
-      "destaquediag",
-      label = "Diagnósticos a filtrar:",
+      "destaqueproc",
+      label = "Procedimentos a filtrar:",
       width = "100%",
-      choices = NULL,
+      choices = procedimentos,
       selected = NULL,
       multiple = TRUE
     )
-  })%>%bindCache(input$geral)
+  }) %>%bindCache(input$geral,input$corte_subgrupo)
 
-  updateSelectizeInput(session, 'destaquediag', choices = diagnosticos, server = TRUE)
+  updateSelectizeInput(session, 'destaqueproc', choices = procedimentos, server = TRUE)
 
   output$total_elab <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%filter(estadual == T,Situação == "Incompleta"))),"Em elaboração"),
