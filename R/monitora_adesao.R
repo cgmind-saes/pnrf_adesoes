@@ -5,7 +5,7 @@
 propostas <- list.files(path="dados/propostas_mon/",pattern = "*.xlsx",full.names = T)
 
 
-base_propostas <- rbindlist(lapply(propostas[1],read_xlsx))
+base_propostas <- rbindlist(lapply(propostas[2],read_xlsx))
 
 names(base_propostas) <- gsub("PLANO ESTADUAL DE REDUÇÃO DE FILAS DE CIRURGIAS ELETIVAS / ","",names(base_propostas))
 
@@ -16,12 +16,30 @@ base_propostas$estadual <- grepl("ESTADUAL",base_propostas$Fundo)
 
 
 #dados extra do DRAC
-# adet <- "dados/propostas_mon/2023-02-24-adesao-detalhe.pdf"
+
+#monextradrac <- read_xlsx("dados/propostas_mon/2023-02-24-monextra-drac.xlsx",skip=2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#adet <- "dados/propostas_mon/2023-02-24-monitoramento-d.pdf"
 # #ocrmypdf -l por 2023-02-24-monitoramento-extra.pdf  2023-02-24-adesao-detalhe.pdf
 # noarea <- tabulizer::locate_areas(adet)
 # nearea <- tabulizer::locate_areas(adet)
 # coarea <- tabulizer::locate_areas(adet)
-# adesao_detalhe <- tabulizer::extract_tables(adet)
+#adesao_detalhe <- tabulizer::extract_tables(adet)
 #
 # adesao_detalhe[[5]] <- adesao_detalhe[[5]][,-2]
 #

@@ -110,3 +110,10 @@ filtr_a_cdc <- data.frame(filtro = names(filtros), coldc = c("porte","CO_PACIENT
 
 ##apenas para preencher vazio em erro
 periodos <- unique(aih_piccolo$DT_CMPT)
+
+
+#dados extra do DRAC
+
+monextradrac <- read_xlsx("dados/propostas_mon/2023-02-24-monextra-drac.xlsx",skip=2)
+
+estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")

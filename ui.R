@@ -1,10 +1,10 @@
 ui <- navbarPage(
   theme = bs_theme(version = 4, bootswatch = "minty"),
   collapsible = TRUE,
-  windowTitle = "Monitoramento Programa Nacional de Redução de Filas",
+  windowTitle = "Adesão ao Programa Nacional de Redução das Filas - Planos Estaduais",
   title = div(bs_button(icon("bars"), button_type = "primary") %>%
                 bs_attach_collapse("lateral_filtros"),
-              tags$text("Redução de Filas")),
+              tags$text("Programa Nacional de Redução das Filas - Planos Estaduais")),
   header = absolutePanel(
     fixed = TRUE,
     style = "
@@ -59,19 +59,23 @@ ui <- navbarPage(
       padding: 0px
     ",
     bottom = 2,
-    left = "42%",
-    width = 300,
-    height = 20,
+    right = "2%",
+    width = 360,
+    height = 40,
     tags$table(
       tags$tr(
         tags$td(
-          img(src = "https://grupo.pro.br/cgmind-simbolo.png",
-              height = "20px",
-              style = "
-                -webkit-filter: grayscale(20%);
-                filter: grayscale(20%)
-          ")
+          img(src = "ms_marca.png",
+              height = "35px")
         ),
+        # tags$td(
+        #   img(src = "https://grupo.pro.br/cgmind-simbolo.png",
+        #       height = "20px",
+        #       style = "
+        #         -webkit-filter: grayscale(20%);
+        #         filter: grayscale(20%)
+        #   ")
+        # ),
         tags$td(
           "CGMIND-SAES | ",
           span("©", style = "
@@ -94,9 +98,9 @@ ui <- navbarPage(
   ),
   absolutePanel(
     fixed= T,
-    top = 120,
+    top = 60,
     width = "100%",
-    height = "92%",
+    height = "95%",
     sidebarLayout(
 #          "Indicadores",
       sidebarPanel = bsplus::bs_collapse(
@@ -121,41 +125,47 @@ ui <- navbarPage(
           width = 12
         )
       ),
-  mainPanel = mainPanel(
-    "Adesão e Plano inicial",
-    style = "max-height:90vh; overflow-y: auto;",
-# tabPanel(
-#   "Planos Elab",
-  fluidRow(
-    column(3,flashCardOutput("total_elab",width="300px",height="205px")),
-    column(3,flashCardOutput("total_cib",width="300px",height="205px"),offset=1),
-    column(3,flashCardOutput("total_plano",width="300px",height="205px"),offset=1)),
-fluidRow(column(12,tags$br()),),
+  mainPanel = tabsetPanel(
+    id="principal",
+    #style = "max-height:90vh; overflow-y: auto;",
+    tabPanel(
+   "Adesão e Plano inicial",
+  fluidPage(theme=bslib::bs_theme(version = 4, bootswatch = "minty"),lang="pt-br",
+    fluidRow(
+    column(3,flashCardOutput("total_elab",width="200px",height="133px")),
+    column(3,flashCardOutput("total_cib",width="200px",height="133px"),offset=1),
+    column(3,flashCardOutput("total_plano",width="200px",height="133px"),offset=1)),
+fluidRow(column(12,tags$br())),
 fluidRow(
-  column(3,flashCardOutput("plano_analise",width="300px",height="205px"),offset=2),
-  column(3,flashCardOutput("plano_aprovado",width="300px",height="205px"),offset=1)),
-#  tabPanel(
-#    "Resultados s/ótica MS",
-#    fluidRow(
+  column(3,flashCardOutput("plano_analise",width="200px",height="133px"),offset=2),
+  column(3,flashCardOutput("plano_aprovado",width="200px",height="133px"),offset=1)),
+fluidRow(column(12,tags$br())),
+fluidRow(
+  column(6,DT::DTOutput("tabeladrac"),height="300px"))
+)),
+  tabPanel(
+    "Resultados s/ótica MS",
+    fluidRow(
 #      column(6,shinycssloaders::withSpinner(flashCardOutput("total_elab"))
 #    )
-#  )),
-#  tabPanel(
-#    "Gestão",
-#    absolutePanel(
-#      width="75%",
-#      top=50,
-#      height="88%",
-#      right="1.5%",
-#      style = "z-index: 100",
-# #     shinycssloaders::withSpinner(reactableOutput("rol_estab"))
-#    )),
-  width = 12),
+  )),
+  tabPanel(
+    "Gestão",
+    absolutePanel(
+      width="75%",
+      top=50,
+      height="88%",
+      right="1.5%",
+      style = "z-index: 100",
+      fileInput("atualiza","Insira novo relatório SAIPS")
+     #shinycssloaders::withSpinner(reactableOutput("rol_estab"))
+    )),
+#  width = 12
+),
 position = "right",
 fluid = TRUE)
 # ,
 # )
 # )
-# )
-)
+ )
 )

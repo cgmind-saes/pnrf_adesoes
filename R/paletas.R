@@ -12,10 +12,10 @@ paleta3 <- c("#071D41",
              "#5992ED",
              "#C5D4EB",
              "#C72487"
-             
+
 )
 #Paleta 4 - Seq. Negativa
-paleta4 <- 
+paleta4 <-
   c(
     "#2B081D",
     "#56103A",
@@ -28,7 +28,7 @@ paleta4 <-
 
 
 #Paleta 5 - Divergente Polarizada
-paleta5 <- 
+paleta5 <-
   c(
     "#1351B4",
     "#2670E8",
@@ -46,7 +46,7 @@ paleta5 <-
   )
 
 #Paleta 6 - Divergente Neutra
-paleta6 <- 
+paleta6 <-
   c(
     "#1351B4",
     "#2670E8",
@@ -63,6 +63,10 @@ paleta6 <-
     "#1B5149"
   )
 #Paleta 7 - Categórica
-paleta7 <- 
+paleta7 <-
   c("#86C7BD","#2670E8","#E368B2","#FFCD07","#5992ED","#F6B3B3",
     "#36A191","#C72487","#FBBA00","#1351B4","#F08080","#29796D")
+
+paleta2023 <- c(
+  "#00D000","#FFD000","#183EFF","#FF0000","#020203","#3C3C3C","#C6C6C6"
+)
