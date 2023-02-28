@@ -1,6 +1,9 @@
 @charset "UTF-8";
 body {
   /*background-color: #ffb30024;*/
+  background: url(fundoms_alt.png);
+  background-size: cover;
+ background-repeat: no-repeat;
   font-family: Inconsolata, monospace;
 }
 
@@ -16,7 +19,7 @@ body::-webkit-scrollbar-thumb {
 }
 .btn-primary {
 	position: absolute !important;
-	right: 3px !important;
+	right: 80px !important;
 	height: 30px;
 	top: -5px;
 }
@@ -70,8 +73,8 @@ selectize-input {
   margin-bottom: 12px;
 }
 .btn-secondary, .btn-default:not(.btn-primary):not(.btn-info):not(.btn-success):not(.btn-warning):not(.btn-danger):not(.btn-dark):not(.btn-outline-primary):not(.btn-outline-info):not(.btn-outline-success):not(.btn-outline-warning):not(.btn-outline-danger):not(.btn-outline-dark) {
-  background-color:  #78c2ad !important;
-  border-color:  #78c2ad !important;
+  background-color:  #00D000 !important;
+  border-color:  #00D000 !important;
   color:  #ffffff !important;
 }
 
