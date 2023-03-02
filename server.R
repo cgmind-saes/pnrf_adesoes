@@ -192,8 +192,9 @@ server <- function(input, output, session) {
   })
 
   output$mesel <- renderUI({
-    monthsRangeInput("periodos","Período",min = as.Date("2018-01-01","%Y-%m-%d"),
-                     format = "M/yyyy",startview = "decade",
+    dateRangeInput("periodos","Período",min = as.Date("2018-01-01","%Y-%m-%d"),
+                     format = "dd/mm/yyyy",startview = "month",
+                   language="pt",
                      max = as.Date("2022-04-01","%Y-%m-%d"),
                      start = as.Date("2019-01-01","%Y-%m-%d"),
                      end = as.Date("2021-12-01","%Y-%m-%d"))
@@ -230,52 +231,96 @@ server <- function(input, output, session) {
 
   updateSelectizeInput(session, 'destaqueproc', choices = procedimentos, server = TRUE)
 
+
+  output$barra_ferramentas <- renderUI({
+    tagList(
+    uiOutput("corte_regional"),
+    uiOutput("linha_destaque"),
+    uiOutput("corte_especialidade"),
+    uiOutput("corte_sexo"),
+    uiOutput("corte_etnia"),
+    uiOutput("corte_idade"),
+    div(bs_button(icon("receipt"),button_type="default")%>%bs_attach_collapse("idadet")),
+    bs_collapse(id = "idadet",content = uiOutput("destaque_idade")),
+    tags$br(),
+    uiOutput("corte_subgrupo"),
+    div(bs_button(icon("kit-medical"),button_type="default")%>%bs_attach_collapse("procedi")),
+    checkboxInput("procedimento","Proc Sec."),
+    bs_collapse(id = "procedi",content = uiOutput("destaque_procedimento")),
+    uiOutput("corte_porte"),
+    uiOutput("mesel")
+)
+  })
+
+
+
   output$total_elab <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,Situação == "Incompleta"))),"Em elaboração"),
                         back = c(
                           #paste(as.character(nrow(base_propostas%>%dplyr::filter(estadual == F))),"inválidas"),
                           "",
-                                 paste((base_propostas%>%
+                                 paste("<td width=200px height=143px>",(base_propostas%>%
                                    dplyr::filter(estadual == T,Situação == "Incompleta")%>%
-                                   select(`UF do Fundo`)%>%arrange()%>%
-                                   left_join(estados_siglas%>%select(uf,nome),by=c("UF do Fundo" = "uf")))$nome,
-                                  collapse = c("&nbsp;&nbsp;","<br>"))))
-    flashCard(dadel,frontColor = paleta2023[3],
-              front_text_color = "black", backColor = paleta2023[4])
+                                   select(`UF do Fundo`)%>%arrange())$`UF do Fundo`,
+                                  collapse = "&nbsp;</td>")))
+    flashCard(dadel,frontColor = paleta5[3],
+              front_text_color = "white", backColor = paleta7[11])
   })
 
   output$total_cib <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,Situação == "Completa"))),"Aprovados na CIB"),
                         back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T, Situação != "Completa"))),"ainda sem pactuação"))
-    flashCard(dadel,frontColor = paleta2023[1],
-              front_text_color = "black", backColor = paleta2023[4])
+    flashCard(dadel,frontColor = paleta2023[8],
+              front_text_color = "white", backColor = paleta7[11])
   })
 
   output$total_plano <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"planos enviados ao SAIPS"),
                         back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` == "---"))),"sem plano anexado"))
     flashCard(dadel,frontColor = paleta2023[2],
-              front_text_color = "black", backColor = paleta2023[2])
+              front_text_color = "white", backColor = paleta2023[2])
   })
 
   output$plano_analise <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"planos em análise"),
                         back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` == "---"))),"sem plano em análise"))
     flashCard(dadel,frontColor = paleta2023[2],
-              front_text_color = "black", backColor = paleta2023[4])
+              front_text_color = "white", backColor = paleta7[11])
   })
+
+  output$plano_ajustes <- renderFlashCard({
+    dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"planos em ajustes"),
+                        back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` == "---"))),"sem plano em ajustes"))
+    flashCard(dadel,frontColor = paleta7[11],
+              front_text_color = "white", backColor = paleta2023[2])
+  })
+
 
   output$plano_aprovado <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"planos aprovados"),
                         back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` == "---"))),"sem plano aprovado"))
-    flashCard(dadel,frontColor = paleta2023[2],
-              front_text_color = "black", backColor = paleta2023[4])
+    flashCard(dadel,frontColor = paleta2023[8],
+              front_text_color = "white", backColor = paleta7[11])
   })
 
   output$tabeladrac <- DT::renderDT({
     names(monextradrac) <- str_to_sentence(names(monextradrac))
-    monextradrac%>%select(1:6)
 
-  },options = list(language =  JS("{url: '//cdn.datatables.net/plug-ins/1.10.15/i18n/Portuguese-Brasil.json'}")))
+    monextradrac%<>%rename(UF=Nome)
+    monextradrac$`Valor do recurso` <- paste("R$",format(monextradrac$`Valor do recurso`,nsmall=2,decimal.mark=",",big.mark=".",scientific=F))
+    monextradrac%>%select(Regiao,UF,`Valor do recurso`,Cadastrador)
+
+  },options = list(language =  JS("{url: '//cdn.datatables.net/plug-ins/1.10.15/i18n/Portuguese-Brasil.json'}"),
+                   pageLength = 6,
+                   responsive=T,columnDefs= list(list(responsivePriority=1,targets=1),
+                                                  list(responsivePriority= 10001, targets= 2),
+                                                  list(responsivePriority= 2, targets= -2 ))),
+                   rownames= FALSE,caption = "Fonte: SAIPS",
+  extensions="Responsive")
+
+
+  output$aih_uf <- renderPlotly(
+    plotabanda_destaque(indicador="qt_procedimentos",paramin=0,paramax=1e2)
+  )
 }
 

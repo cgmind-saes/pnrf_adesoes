@@ -114,6 +114,84 @@ periodos <- unique(aih_piccolo$DT_CMPT)
 
 #dados extra do DRAC
 
-monextradrac <- read_xlsx("dados/propostas_mon/2023-02-24-monextra-drac.xlsx",skip=2)
+#monextradrac <- read_xlsx("dados/propostas_mon/2023-02-24-monextra-drac.xlsx",skip=2)
 
 estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")
+
+base_propostas %<>%left_join(estados_siglas%>%select(uf,nome)%>%rename(Uf=nome),by = c("UF do Fundo" = "uf"))
+
+#monextradrac%<>%left_join(base_propostas%>%dplyr::filter(estadual == T),by = c("UF" = "Uf"))
+
+# monextradrac%<>%transmute(REGIÃO,UF,`CADASTRO SAIPS` = case_when(
+#   Situação == "Completa" ~ "CONCLUÍDO",
+#   `CADASTRO SAIPS` == "NÃO INICIADO" & Situação == "Incompleta" ~ "EM ANDAMENTO",
+#   T ~ `CADASTRO SAIPS`),`CAPTAÇÃO FILAS`,
+# `DEFINIÇÃO HOSPITAIS`,`DISTRIBUIÇÃO RECURSO`,`DATA CIB`,`1º CONTATO`,`DATA VIDEO` )
+
+aih_por_uf <- readRDS("dados/aih_pnrf_por_uf.rds")
+# cnesval <- readRDS("dados/2023-01-10-cnes_validos.rds")
+#
+# aih <- readRDS("dados/aih_2018_202301_pnrf.rds")
+#
+# aih_porcnes <- aih%>%group_by(dt_cmpt,co_cnes)%>%count()
+#
+# aih_porcnes$co_cnes <- as.numeric(aih_porcnes$co_cnes)
+#
+# aih_porcnes%<>%left_join(cnesval%>%select(CO_CNES,CO_UNIDADE,CO_ESTADO_GESTOR),
+#                          by = c("co_cnes" = "CO_CNES"))
+#
+#
+# aih_por_uf <- aih_porcnes%>%ungroup()%>%group_by(dt_cmpt)%>%count(CO_ESTADO_GESTOR)
+#
+#
+#
+#
+# aih_por_uf%<>%mutate(across(CO_ESTADO_GESTOR,as.numeric))%>%
+#   left_join(estados_siglas%>%select(nome,codigo_uf),by = c("CO_ESTADO_GESTOR" = "codigo_uf"))
+#
+#
+# aih_por_uf%<>%select(dt_cmpt,nome,n)%>%
+#   rename(Data = dt_cmpt, Uf = nome,qt_procedimentos = n)%>%
+#   mutate(Data = as.Date(paste0(Data,"01"),tryFormats = "%Y%m%d"))
+#
+#
+# aih_por_uf
+#
+#
+# aih_porproc <- aih%>%group_by(dt_cmpt,co_proc_solicitado)%>%count()
+#
+#
+# aih_porproc%<>%mutate(co_proc_solicitado = paste0("0",co_proc_solicitado))%>%
+#   left_join(lista_proced_base,by = c("co_proc_solicitado" = "CO_PROCEDIMENTO"))
+#
+# aih_porproc%<>%  rename(Data = dt_cmpt,
+#                         Procedimento = NO_PROCEDIMENTO,
+#                         qt_procedimentos = n)%>%
+#   mutate(Data = as.Date(paste0(Data,"01"),tryFormats = "%Y%m%d"))
+#
+#
+# aih_porproc_cnes <- aih%>%group_by(dt_cmpt,co_cnes, co_proc_solicitado)%>%count()
+#
+# aih_porproc_cnes$co_cnes <- as.numeric(aih_porproc_cnes$co_cnes)
+#
+# aih_porproc_cnes %<>% left_join(cnesval%>%select(CO_CNES,CO_UNIDADE,CO_ESTADO_GESTOR),
+#                                 by = c("co_cnes" = "CO_CNES"))
+#
+#
+#
+# aih_porproc_cnes%<>%mutate(co_proc_solicitado = paste0("0",co_proc_solicitado))%>%
+#   left_join(lista_proced_base,by = c("co_proc_solicitado" = "CO_PROCEDIMENTO"))
+#
+#
+# aih_porproc_cnes%<>%rename(Data = dt_cmpt,
+#                            Procedimento = NO_PROCEDIMENTO,
+#                            qt_procedimentos = n)%>%
+#   mutate(Data = as.Date(paste0(Data,"01"),tryFormats = "%Y%m%d"))
+#
+#
+# aih_porproc_uf <- aih_porproc_cnes%>%mutate(across(CO_ESTADO_GESTOR,as.numeric))%>%
+#   left_join(estados_siglas%>%select(nome,codigo_uf),by = c("CO_ESTADO_GESTOR" = "codigo_uf"))%>%rename(Uf=nome)
+#
+# aih_porproc_uf <- aih_porproc_uf%<>%ungroup()%>%select(Data,Uf,Procedimento,qt_procedimentos)%>%
+#   group_by(Data,Uf,Procedimento)
+#

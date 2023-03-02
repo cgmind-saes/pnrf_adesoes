@@ -4,6 +4,8 @@
 ## - Leitura dos dados
 ## - Preparação das variáveis para exibição
 #####
+Sys.setlocale("LC_ALL" , "pt_BR.utf8")
+options(scipen=9999999)
 shinyOptions(cache = cachem::cache_disk("dados/cache/"))
 
 ## Carrega pacotes

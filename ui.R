@@ -4,7 +4,9 @@ ui <- navbarPage(
   windowTitle = "Adesão ao Programa Nacional de Redução das Filas - Planos Estaduais",
   title = div(bs_button(icon("bars"), button_type = "primary") %>%
                 bs_attach_collapse("lateral_filtros"),
-              tags$text("Programa Nacional de Redução das Filas - Planos Estaduais")),
+              tags$text("Programa Nacional de Redução das Filas - Planos Estaduais"),
+              style = "color: rgb(19,81,180);
+               font-weight: 600;"),
   header = absolutePanel(
     fixed = TRUE,
     style = "
@@ -13,16 +15,22 @@ ui <- navbarPage(
       padding: 0px;
     ",
     top = 20,
-    left = "2%",
+    left = "1%",
     width = "100%",
     height = "40px",
 
     tags$style("
             position: absolute;
             top: 1px;
-            left: 1px;
+            left: 30px;
              "
 
+    ),
+    bsplus::bs_collapse(
+      "lateral_filtros",
+      show = F,
+      content = uiOutput(
+        "barra_ferramentas")
     )),
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "geralb.css")
@@ -59,14 +67,14 @@ ui <- navbarPage(
       padding: 0px
     ",
     bottom = 2,
-    right = "2%",
+    right = "30%",
     width = 360,
-    height = 40,
+    height = 55,
     tags$table(
       tags$tr(
         tags$td(
           img(src = "ms_marca.png",
-              height = "35px")
+              height = "55px")
         ),
         # tags$td(
         #   img(src = "https://grupo.pro.br/cgmind-simbolo.png",
@@ -96,53 +104,31 @@ ui <- navbarPage(
       )
     )
   ),
-  absolutePanel(
-    fixed= T,
-    top = 60,
-    width = "100%",
-    height = "95%",
-    sidebarLayout(
-#          "Indicadores",
-      sidebarPanel = bsplus::bs_collapse(
-        "lateral_filtros",
-        show = F,
-        content = sidebarPanel(
-          uiOutput("corte_regional"),
-          uiOutput("linha_destaque"),
-          uiOutput("corte_especialidade"),
-          uiOutput("corte_sexo"),
-          uiOutput("corte_etnia"),
-          uiOutput("corte_idade"),
-          div(bs_button(icon("receipt"),button_type="default")%>%bs_attach_collapse("idadet")),
-          bs_collapse(id = "idadet",content = uiOutput("destaque_idade")),
-          tags$br(),
-          uiOutput("corte_subgrupo"),
-          div(bs_button(icon("kit-medical"),button_type="default")%>%bs_attach_collapse("procedi")),
-          checkboxInput("procedimento","Proc Sec."),
-          bs_collapse(id = "procedi",content = uiOutput("destaque_procedimento")),
-          uiOutput("corte_porte"),
-          uiOutput("mesel"),
-          width = 12
-        )
-      ),
-  mainPanel = tabsetPanel(
+    tabsetPanel(
     id="principal",
     #style = "max-height:90vh; overflow-y: auto;",
     tabPanel(
    "Adesão e Plano inicial",
-  fluidPage(theme=bslib::bs_theme(version = 4, bootswatch = "minty"),lang="pt-br",
+  flowLayout(theme=bslib::bs_theme(version = 4, bootswatch = "minty"),lang="pt-br",
+
+    column(width=3,flashCardOutput("total_elab",width="200px",height="143px")),
+    column(width=3,flashCardOutput("total_cib",width="200px",height="143px"),offset=1),
+  column(width=3,flashCardOutput("total_plano",width="200px",height="143px"),offset=1),
+    column(width=3,flashCardOutput("plano_analise",width="200px",height="143px"),offset=2),
+    column(width=3,flashCardOutput("plano_ajustes",width="200px",height="143px"),offset=2),
+    column(width=3,flashCardOutput("plano_aprovado",width="200px",height="143px"),offset=2),
+column(12,tags$br())),
+column(12,tags$h2("Detalhe dos planos em elaboração"),
+column(8,
+       DT::DTOutput("tabeladrac"),height="auto")
+)
+),
+  tabPanel(
+    "Planos Estaduais",
     fluidRow(
-    column(3,flashCardOutput("total_elab",width="200px",height="133px")),
-    column(3,flashCardOutput("total_cib",width="200px",height="133px"),offset=1),
-    column(3,flashCardOutput("total_plano",width="200px",height="133px"),offset=1)),
-fluidRow(column(12,tags$br())),
-fluidRow(
-  column(3,flashCardOutput("plano_analise",width="200px",height="133px"),offset=2),
-  column(3,flashCardOutput("plano_aprovado",width="200px",height="133px"),offset=1)),
-fluidRow(column(12,tags$br())),
-fluidRow(
-  column(6,DT::DTOutput("tabeladrac"),height="300px"))
-)),
+      column(4,plotly::plotlyOutput("aih_uf"))
+    )
+  ),
   tabPanel(
     "Resultados s/ótica MS",
     fluidRow(
@@ -151,21 +137,16 @@ fluidRow(
   )),
   tabPanel(
     "Gestão",
-    absolutePanel(
-      width="75%",
-      top=50,
-      height="88%",
-      right="1.5%",
-      style = "z-index: 100",
-      fileInput("atualiza","Insira novo relatório SAIPS")
+fluidRow( fileInput("atualiza","Insira novo relatório SAIPS",      buttonLabel = "Navegar...",
+                placeholder = "Nenhum arquivo selecionado",width="340px")
      #shinycssloaders::withSpinner(reactableOutput("rol_estab"))
     )),
 #  width = 12
 ),
-position = "right",
-fluid = TRUE)
+#position = "right",
+#fluid = TRUE)
 # ,
 # )
 # )
- )
+# )
 )

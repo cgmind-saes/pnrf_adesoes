@@ -37,7 +37,7 @@ div[id='lateral_filtros'] {
     right: 3px !important;
     top: 0px !important;
     line-height: 0.75em !important;
-    background-color: rgba(254, 254, 254, 0.2) !important;
+    background-color: rgba(254, 254, 254, 0.9) !important;
 }
 form[class='well'] {
       background-color: rgba(134, 199, 194, 0.2) !important;
@@ -83,7 +83,15 @@ selectize-input {
   clip-path: polygon(50% 0, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
 }
 
+.flash-card {
+  margin: 5px;
+  border-radius: 10px;
+}
 
+
+.flash-card-inner, .flash-card-front, .flash-card-back {
+  border-radius: 10px;
+}
 
 .block {
   position: relative;
@@ -101,6 +109,12 @@ selectize-input {
   transition: clip-path 300ms, background-color 300ms;
   transition: clip-path 300ms, background-color 300ms, -webkit-clip-path 300ms;
 }
+
+#total_elab > div > div.flash-card-front > h2,#plano_aprovado  > div > div.flash-card-front > h2,#plano_ajustes  > div > div.flash-card-front > h2,#plano_analise  > div > div.flash-card-front > h2,#total_plano  > div > div.flash-card-front > h2,#total_cib > div > div.flash-card-front > h2 {
+  color: white;
+}
+
+
 .block:hover {
   background-color: purple;
 }
@@ -346,3 +360,5 @@ p span {
   font-style: italic;
   color: #4169e1;
 }
+
+

@@ -259,3 +259,79 @@ datePickerDependency <- htmltools::htmlDependency(
  $.fn.bsDatepicker = datepicker;
  })();
  </script>")
+
+cria_geom <- function(x,cores = paleta7) {
+  geom_line(aes(y = !!sym(as.character(x))),alpha = 1, color = sample(1:12,1), size = 1)
+}
+
+plotabanda_destaque <- function(recorte = "Uf",destaque_reg = 3,
+                                indicador,
+                                paramin ,
+                                paramax,
+#                                filatr = filtros(),
+                                btab = aih_por_uf,
+                                datas = as.Date(c("2018-01-31","2023-01-31"))){
+
+  #filtros <- gsub("todos","",sapply(filatr,as.character))
+  #btab <- as.data.frame(btab[,,indicador,,,,,,,,])
+
+#  limfiltro <- numa_loc(filatr)
+
+  # if (is.null(datas) || 0 %in% dim(datas)||length(datas)==0||is.na(datas)) {
+  #   datas = as.Date(c("2018-01-31","2022-03-31"))
+  # }
+  btab$valor = btab[[indicador]]
+
+  contextos <- btab%>%group_by(Data)%>%summarize(mini=min(valor,na.rm = T),
+                                                     mediana=median(valor,na.rm = T),
+                                                     maxi=max(valor,na.rm = T),
+                                                     media= mean(valor,na.rm = T))
+  contextos <- as.data.table(contextos)
+  btab$local <- btab$Uf
+  #destaque_reg <- limfiltro+as.numeric(destaque_reg)
+  destaques <- btab%>%filter(local %in% estados_siglas[destaque_reg,]$nome, Data>datas[1],Data<datas[2])%>%select(Data,local,valor)
+  destaques <- as.data.frame(destaques)
+
+  #dim_local <- listar_loc(recorte)
+
+  if(0 %in% dim(destaques)){
+    cd <- contextos
+    print("sem destaques")
+  } else {
+   # njun <- data.frame(local = as.numeric(dim_local),nom_local = str_to_title(as.character(dim_local)))
+#    njun$local <- njun$local+limfiltro
+    destaques <- destaques[!duplicated(destaques[1:2]),] #%>%mutate(local = local-limfiltro)
+    print(names(destaques))
+#    destaques <- destaques%>%left_join(njun)
+    #select(-Uf,-indicador)
+    destaques%<>%pivot_wider(names_from = local,values_from = valor)
+
+    cd <- destaques%>%left_join(contextos)
+    cd <- as_tibble(cd)
+  }
+  print("Em plota banda destaque")
+
+  ###PRODUZ A PLOTAGEM
+  d <- ggplot(cd,aes(x = Data))+
+    geom_line(aes(y = media),color = paleta3[1], size = 0.3, linetype = "longdash")+
+    geom_line(aes(y = paramax),color = paleta4[5],size= 0.2, linetype = "dashed")+
+    geom_line(aes(y = paramin),color = paleta3[5],size= 0.2, linetype = "dashed")+
+    geom_line(aes(y = maxi), color = paleta3[4],alpha=0.5,linetype = "dotted")+
+    geom_line(aes(y = mini),alpha=0.5,color = paleta3[5], size = 0.7,linetype = "dotted")+
+    geom_line(aes(y = mediana),alpha=0.5,color = paleta6[2] ,linetype = "dashed",size = 0.5)+
+    geom_ribbon(aes(ymin = mini, ymax = maxi,fill = maxi>mini),alpha = 0.1, show.legend = F)+
+    scale_fill_manual(values = paleta6[c(10,11,1:9)])+
+    ylab("Procedimentos no mês")+
+    scale_x_date(breaks = "1 year",date_labels = "%b %Y")+
+    xlab("Período de competência")+
+    ggtitle(paste("Produção de procedimentos na PNRF","por ",recorte,
+                  "\n",format.Date(first(cd$Data),"%B/%Y"),"a",format.Date(last(cd$Data),"%B/%Y")))+
+    #    expand_limits(y=0)+
+    theme_minimal()
+  if(nrow(destaques)==0){d <- d} else{
+    for (i in 1:length(destaque_reg)) d <- d+cria_geom(names(cd)[2:(ncol(cd)-4)][i],i)}
+
+  #hide_guides(
+    ggplotly(d)
+#    )
+}
