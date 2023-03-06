@@ -116,6 +116,16 @@ periodos <- unique(aih_piccolo$DT_CMPT)
 
 #monextradrac <- read_xlsx("dados/propostas_mon/2023-02-24-monextra-drac.xlsx",skip=2)
 
+situacoes_propostas <- c(
+  "Incompleta","Enviada para o MS","Em análise","Em diligência",
+  "Em reanálise","Rejeitada","Aprovada","Paga","Gerada Minuta PRT/Memo",
+  "Inativa","A Liberar","A Priorizar","Aprovada com ressalva",
+  "Reenviada para o MS","Aprovada para implantação","Paga para implantação",
+  "Paga com ressalva","Paga e implantada","Documento complementar",
+  "Reenviada para o MS - Documentos Complementares","Em reanálise - Documentos Complementares",
+  "Cancelada","Suspensa","Rejeitada por não atendimento da diligência",
+  "Em diligência - Documentos Complementares")
+
 estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")
 
 base_propostas %<>%left_join(estados_siglas%>%select(uf,nome)%>%rename(Uf=nome),by = c("UF do Fundo" = "uf"))
@@ -195,3 +205,5 @@ aih_por_uf <- readRDS("dados/aih_pnrf_por_uf.rds")
 # aih_porproc_uf <- aih_porproc_uf%<>%ungroup()%>%select(Data,Uf,Procedimento,qt_procedimentos)%>%
 #   group_by(Data,Uf,Procedimento)
 #
+
+

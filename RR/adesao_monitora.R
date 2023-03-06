@@ -1,5 +1,7 @@
 "https://saips.saude.gov.br/relatorios/gerar-relatorio-propostas"
 
+atualwd <- getwd()
+setwd("/home/borges/pRojetos/pnrf")
 estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")
 
 #Lista arquivos
@@ -7,6 +9,9 @@ propostas <- list.files(path="dados/propostas_mon/",pattern = "*.xlsx",full.name
 
 if(!exists("base_propostas")){
 base_propostas <- read_xlsx("dados/propostas_mon/relatorio_propostas.xlsx")
+
+
+data_atualiza <- system(paste("date -r",propostas[2],'"+%Y-%m-%d %H:%M:%S"'))
 
 names(base_propostas) <- gsub("PLANO ESTADUAL DE REDUÇÃO DE FILAS DE CIRURGIAS ELETIVAS / ","",names(base_propostas))
 
@@ -91,3 +96,5 @@ print(nrow(monextradrac))
 
 # download.file("https://www.gov.br/saude/pt-br/composicao/saes/saips/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx","dados/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx",
 #               method="auto")
+
+setwd(atualwd)

@@ -6,13 +6,18 @@
 #####
 Sys.setlocale("LC_ALL" , "pt_BR.utf8")
 options(scipen=9999999)
-shinyOptions(cache = cachem::cache_disk("dados/cache/"))
+#shinyOptions(cache = cachem::cache_disk("dados/cache/"))
 
 ## Carrega pacotes
 source("requ.R")
+source("R/utils.R")
+source("R/adesao_monitora.R")
+data_atualiza <- system(paste("date -r",propostas[2],'"+%Y-%m-%d %H:%M:%S"'),intern=T)
+
+data_atualiza <- format.Date(as.POSIXlt(data_atualiza,tryFormats = "%Y-%m-%d %H:%M:%S")-15400,"%a, %d de %b de %Y, %Hh%M",tz = "América/São Paulo")
 ## Carrega dados estáticos do painel
 #source("R/estaticospainel.R")
-#source("R/monitora_adesao.R")
+print("Começando novamente agora com a versão atualizada do app")
 
 ##Funções auxiliares
 plotatmp <- function(recorte = "NO_REGIAO",dados = aih_piccolo) {

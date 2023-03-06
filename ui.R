@@ -67,14 +67,14 @@ ui <- navbarPage(
       padding: 0px
     ",
     bottom = 2,
-    right = "30%",
-    width = 360,
-    height = 55,
+    right = "3vw",
+    width = 460,
+    height = "5vh",
     tags$table(
       tags$tr(
         tags$td(
           img(src = "ms_marca.png",
-              height = "55px")
+              height = "60vh")
         ),
         # tags$td(
         #   img(src = "https://grupo.pro.br/cgmind-simbolo.png",
@@ -98,9 +98,11 @@ ui <- navbarPage(
               -ms-filter: 'FlipH'
             "
           ),
-          " CC-BY-NC SA 4.0",
-          style = "font-size: 10px;"
-        )
+          "CC-BY-NC-SA 4.0",
+          style = "font-size: 8px;"
+        ),
+        tags$td(paste("Atualizado em:",data_atualiza),style = "font-size:10px")
+
       )
     )
   ),
@@ -118,10 +120,12 @@ ui <- navbarPage(
     column(width=3,flashCardOutput("plano_ajustes",width="200px",height="143px"),offset=2),
     column(width=3,flashCardOutput("plano_aprovado",width="200px",height="143px"),offset=2),
 column(12,tags$br())),
-column(12,tags$h2("Detalhe dos planos em elaboração"),
-column(8,
+#column(12,tags$h2("Detalhe dos planos em elaboração")),
+fluidRow(column(10,
        DT::DTOutput("tabeladrac"),height="auto")
-)
+,
+column(1,tags$a(bs_button(icon("file-pdf")),target="_blank",href="relatorios/relatorio_adesao.pdf",
+                download=paste0(system(paste("date -r",propostas[2],'"+%Y-%m-%d"'),intern=T),"-relatorio_de_adesao_pnrf.pdf"))))
 ),
   tabPanel(
     "Planos Estaduais",
@@ -139,14 +143,7 @@ column(8,
     "Gestão",
 fluidRow( fileInput("atualiza","Insira novo relatório SAIPS",      buttonLabel = "Navegar...",
                 placeholder = "Nenhum arquivo selecionado",width="340px")
-     #shinycssloaders::withSpinner(reactableOutput("rol_estab"))
-    )),
-#  width = 12
-),
-#position = "right",
-#fluid = TRUE)
-# ,
-# )
-# )
-# )
+)
+)
+)
 )

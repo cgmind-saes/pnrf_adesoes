@@ -1,0 +1,100 @@
+---
+title: "Relatório de Adesão                                   \\phantom{rb}\\linebreak Programa Nacional de Redução de Filas"   
+author: "CGMIND/SAES"
+date: "`r Sys.setlocale('LC_ALL' , 'pt_BR.utf8')
+format.Date(Sys.time()-15400,'%A,%d de %B de %Y, às %H horas')`"
+portuguese: "true"  
+### Uncomment the following line if a summary should be shown after the title 
+# abstract: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+
+### Comment or remove the following two lines if NO references are used
+bibliography: [bib/references.bib, bib/packages.bib] # Path to bibliography files 
+csl: bib/ibict-abnt.csl                            # Path to reference style file
+always_allow_html: true
+### Settings for rendering the document:
+output: 
+  cgmindmodelos::pdf_report:
+#    keep_tex:true
+    toc: false
+    includes:
+      in_header: header.tex
+    font: "Lato" # alternative: "Helvetica" 
+### Comment the next line if 'language: "en" ' and 'toc: true'
+  #toc-title: "Sumário"    
+---
+\renewcommand{\tablename}{Tabela}
+```{r setup, include = FALSE}
+# settings --> keep this chunk as it is!
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, 
+  warning = FALSE, error = FALSE, cache = TRUE,
+  fig.path='figs/', cache.path = 'cache/')
+```
+
+```{r load-packages, include = FALSE}
+# Load all your packages that you need later
+library(knitr)
+source("../../requ.R")
+```
+
+```{r generate-package-refs, include=FALSE}
+# Automatically create a bib database for R packages used above
+knitr::write_bib(
+  x = c(.packages(), 'bookdown', 'rmarkdown', 
+    # Add here now all packages that are loaded above:
+    'knitr'), 
+  file = 'bib/packages.bib')
+```
+
+```{r carrega-dados,include=F}
+source("../../R/paletas.R")
+source("../../RR/adesao_monitora.R")
+source("../../R/paletas.R")
+pl_elab <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Incompleta"))
+pl_comp <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Completa"))
+pl_saips <- nrow(dplyr::filter(base_propostas,estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))
+```
+# Resumo da Adesão Inicial ao Programa Nacional de Redução de Filas
+
+Situação dos planos no SAIPS: 
+
+ - `r pl_elab` em elaboração; 
+ 
+ - `r pl_comp` aprovados na CIB; 
+ 
+ - `r pl_saips` planos enviados ao SAIPS;
+ 
+ - `r pl_saips` planos em análise;
+ 
+ - `r pl_saips` planos em ajustes;
+ 
+ - `r pl_saips` planos aprovados;
+ 
+ 
+.
+
+\begin{landscape}
+```{r tabela1,echo = F}
+
+names(monextradrac) <- str_to_sentence(names(monextradrac))
+monextradrac[,1:6] <- apply(monextradrac[,1:6],2,str_to_sentence)
+monextradrac$`Valor do recurso` <- paste("R$",format(monextradrac$`Valor do recurso`,nsmall=2,decimal.mark=",",big.mark=".",scientific=F))
+monextradrac$`Nº da proposta` <- paste("Nº",format(as.numeric(monextradrac$`Nº da proposta`),decimal.mark=",",big.mark=".",scientific=F))
+
+monextradrac$Cadastrador <- str_to_title(monextradrac$Cadastrador)
+
+monextradrac$Telefone <- substr(monextradrac$Telefone,1,14)
+names(monextradrac)[c(1,10)] <- c("UF","Região")
+monextradrac$UF <- str_to_upper(monextradrac$UF)
+kable(arrange(monextradrac[,c("Região","UF","Nº da proposta","Situação","Valor do recurso","Cadastrador","Telefone")],Região,Cadastrador %in% c("n.d.","---")),
+      col.names=names(monextradrac[,c("Região","UF","Nº da proposta","Situação","Valor do recurso","Cadastrador","Telefone")]),
+      caption = "Informações sobre a adesão ao Programa Nacional de Redução de Filas")%>%
+  kableExtra::kable_styling(bootstrap_options = "striped",
+                            latex_options = c("striped", "repeat_header"),
+                            stripe_color = paleta2023[7],
+                            full_width = F)
+```
+\end{landscape}
+    
+\newpage
+
+<!-- Todas as referências serão adicionadas aqui automaticamente. -->
