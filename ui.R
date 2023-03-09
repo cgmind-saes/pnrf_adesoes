@@ -127,10 +127,20 @@ fluidRow(column(10,
 column(1,tags$a(bs_button(icon("file-pdf")),target="_blank",href="relatorios/relatorio_adesao.pdf",
                 download=paste0(system(paste("date -r",propostas[2],'"+%Y-%m-%d"'),intern=T),"-relatorio_de_adesao_pnrf.pdf"))))
 ),
+tabPanel(
+  "Filas",
+  fluidRow(
+    column(6,DT::DTOutput("top_filas")),
+    column(6, ggiraphOutput("donut_subgrupo"))
+  ),
+  fluidRow(
+    column(3,flashCardOutput("reducao_geral",width="200px",height="143px")),
+    column(6,DT::DTOutput("menores_filas")))
+),
   tabPanel(
     "Planos Estaduais",
     fluidRow(
-      column(4,plotly::plotlyOutput("aih_uf"))
+      tags$br()
     )
   ),
   tabPanel(

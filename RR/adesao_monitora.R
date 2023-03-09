@@ -67,7 +67,8 @@ plan_recs <- read_xlsx("dados/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx",
 
 
 monextradrac <-
-  base_propostas%>%dplyr::filter(estadual == T)%>%
+  base_propostas%>%dplyr::filter(estadual == T)%>%dplyr::group_by(`UF do Fundo`)%>%
+  summarize_all(last)%>%
   select(-UF)%>%
   rename(UF = `UF do Fundo`)%>%select(UF,`Nº da Proposta`,Situação,`Nome completo do Responsável pelo Cadastro:`,
                                       `Cargo:`,`Telefone: (xx) xxxx-xxxx`,`E-mail:`)%>%

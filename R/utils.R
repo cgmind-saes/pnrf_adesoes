@@ -8,8 +8,8 @@ library(rjson)
 filter <- dplyr::filter
 #municipios <- "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
 
-br_mun <-  fromJSON(file = ifelse(grepl("coes-ms/.*",getwd()),
-                                        "../dados/municipios.json",
+br_mun <-  fromJSON(file = ifelse(grepl("relatorios/.*",getwd()),
+                                        "../../dados/municipios.json",
                                         "dados/municipios.json"))
 
 achata <- function(x){as.data.frame(br_mun[[x]])}
@@ -33,7 +33,9 @@ fni <- function(x){formatC(as.numeric(x), format="d", big.mark=".", decimal.mark
 # pop_estadual  %<>%filter(`Unidade da Federação` != "TOTAL")
 # pop_estadual %<>% separate(`Unidade da Federação`,3,into=c("n_UF","UF"))
 
-pop_estadual <- readRDS("dados/popestadual.rds")
+pop_estadual <- readRDS( ifelse(grepl("relatorios/.*",getwd()),
+                                "../../dados/popestadual.rds",
+                                "dados/popestadual.rds"))
 
 minnarm <- function(x) {
   min(x,na.rm=T)

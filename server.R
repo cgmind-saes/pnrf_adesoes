@@ -255,7 +255,7 @@ server <- function(input, output, session) {
 
 
   output$total_elab <- renderFlashCard({
-    dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,Situação == "Incompleta"))),"Em elaboração"),
+    dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,Situação %in% c("Incompleta","A Liberar")))-2),"Em elaboração"),
                         back = c(
                           #paste(as.character(nrow(base_propostas%>%dplyr::filter(estadual == F))),"inválidas"),
                           "",
@@ -269,14 +269,22 @@ server <- function(input, output, session) {
 
   output$total_cib <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Anexe Resolução CIB ou Colegiado de Gestão:` != "---"))),"Aprovados na CIB"),
-                        back = c(as.character(27-nrow(base_propostas%>%dplyr::filter(estadual == T, `Anexe Resolução CIB ou Colegiado de Gestão:` != "---"))),"ainda sem pactuação"))
+                        back = c("",
+                                 paste("<td width=200px height=143px>",(base_propostas%>%
+                                                                          dplyr::filter(estadual == T,`Anexe Resolução CIB ou Colegiado de Gestão:` != "---")%>%
+                                                                          select(`UF do Fundo`)%>%arrange())$`UF do Fundo`,
+                                       collapse = "&nbsp;</td>")))
     flashCard(dadel,frontColor = paleta2023[8],
               front_text_color = "white", backColor = paleta7[11])
   })
 
   output$total_plano <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"planos enviados ao SAIPS"),
-                        back = c(as.character(27-nrow(base_propostas%>%dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))),"sem plano anexado"))
+                        back = c("",
+                                 paste("<td width=200px height=143px>",(base_propostas%>%
+                                                                          dplyr::filter(estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---")%>%
+                                                                          select(`UF do Fundo`)%>%arrange())$`UF do Fundo`,
+                                       collapse = "&nbsp;</td>")))
     flashCard(dadel,frontColor = paleta2023[2],
               front_text_color = "white", backColor = paleta2023[2])
   })
@@ -297,8 +305,8 @@ server <- function(input, output, session) {
 
 
   output$plano_aprovado <- renderFlashCard({
-    dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,grepl("Aprovado",Situação)))),"planos aprovados"),
-                        back = c(as.character(27-nrow(base_propostas%>%dplyr::filter(estadual == T,grepl("Aprovado",Situação)))),"sem plano aprovado"))
+    dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,grepl("Aprovada",Situação)))),"planos aprovados"),
+                        back = c(as.character(27-nrow(base_propostas%>%dplyr::filter(estadual == T,grepl("Aprovada",Situação)))),"sem plano aprovado"))
     flashCard(dadel,frontColor = paleta2023[8],
               front_text_color = "white", backColor = paleta7[11])
   })
@@ -335,5 +343,85 @@ server <- function(input, output, session) {
   )
 
 
+
+  output$top_filas <- DT::renderDT({
+
+    filamostra <- filas%>%
+      filter(!is.na(`PROCEDIMENTO CIRÚRGICO`))%>%
+      group_by(paste(`CÓDIGO DO PROCEDIMENTO NO SIGTAP`, str_to_sentence(`PROCEDIMENTO CIRÚRGICO`), sep =" - "))%>%
+      summarize(Fila = sum(round(`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`,0)),
+        "Cirurgias a Realizar" = sum(round(`Qtde de cirurgias a serem feitas no prazo pactuado`,0)),
+        UFs = toString((unique(UF))))%>%
+      arrange(desc(Fila),desc(`Cirurgias a Realizar`))%>%
+      mutate(across(where(is.numeric),fni))
+
+    names(filamostra) <- c("Procedimento","Fila","Cirurgias a Realizar","UFs")
+    filamostra
+  },
+  options = list(language=JS("{url: '//cdn.datatables.net/plug-ins/1.10.15/i18n/Portuguese-Brasil.json'}"),
+                 pageLength = 5,
+                 searching = F, info = F,
+                 sdom = T),
+  rownames= FALSE,caption = "Procedimentos - Top 5"
+  )
+
+
+  output$menores_filas <- DT::renderDT({
+
+    filamostra <- filas%>%
+      group_by(paste(`CÓDIGO DO PROCEDIMENTO NO SIGTAP`, str_to_sentence(`PROCEDIMENTO CIRÚRGICO`), sep =" - "))%>%
+      summarize(Fila = sum(round(`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`,0)),
+                "Cirurgias a Realizar" = sum(round(`Qtde de cirurgias a serem feitas no prazo pactuado`,0)),
+                UFs = toString((unique(UF))), .groups = 'drop')%>%
+      arrange(Fila,`Cirurgias a Realizar`)%>%
+      mutate(across(where(is.numeric),fni))
+
+    names(filamostra) <- c("Procedimento","Fila","Cirurgias a Realizar","UFs")
+    filamostra
+  },
+  options = list(language=JS("{url: '//cdn.datatables.net/plug-ins/1.10.15/i18n/Portuguese-Brasil.json'}"),
+                 pageLength = 5,
+                 searching = F, info = F),
+    rownames= FALSE,caption = "Procedimentos - 5 menores filas"
+  )
+
+ output$reducao_geral <- renderFlashCard({
+   dadel <- data.frame(front = c(fni(round(sum(filas$`Qtde de cirurgias a serem feitas no prazo pactuado`,na.rm=T))),"Cirurgias na fila"),
+                       back = c(paste0(fnx(round(100*sum(filas$`Qtde de cirurgias a serem feitas no prazo pactuado`,na.rm=T)/
+                                                   sum(filas$`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`,na.rm=T),1)),"%"),"Redução Média"))
+
+   flashCard(dadel,frontColor = paleta2023[2],
+             front_text_color = "white", backColor = paleta2023[2])
+ })
+
+
+ output$donut_subgrupo <-  renderggiraph({ #need to update from renderPlot
+    proporciona <- function(x){
+      round(100*prop.table(x),2)
+    }
+   data <- filas%>%group_by(subgrupo)%>%summarize(cirurgias=round(sum(`Qtde de cirurgias a serem feitas no prazo pactuado`),0),
+                                                     fila=round(sum(`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`),0))
+
+   dataprop <- data%>%mutate(across(-subgrupo,proporciona))%>%rename(fila_prop = fila,cirurgia_prop=cirurgias)
+
+   data%<>%left_join(dataprop)
+   data%<>%filter(!is.na(subgrupo))
+
+   p <-  ggplot() + #assign as object in environment
+     geom_bar_interactive(data = data, stat = "identity",
+                          color = "white",
+                          aes(x = 2, y = fila_prop, fill = subgrupo, tooltip = paste0(subgrupo,"\n",fni(fila), "\n", fila_prop, "%"))) + #Add tooltip to aes()
+     coord_polar(theta = "y", start = 0)+
+     scale_fill_manual(values = c(paleta2023,paleta7)) +
+     theme_void() +theme(
+       panel.background = element_rect(fill='transparent',color=NA),
+       plot.background = element_rect(fill='transparent',color=NA),
+       legend.position = "none")+
+     xlim(.5, 2.5)+
+     ggtitle("Procedimentos por subgrupo")
+
+   ggiraph(code = print(p),tooltip_opacity = 0.8) #call object p
+
+ })
 }
 

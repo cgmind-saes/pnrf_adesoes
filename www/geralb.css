@@ -24,6 +24,25 @@ body::-webkit-scrollbar-thumb {
 	top: -5px;
 }
 
+g:nth-child(1) > rect {
+  fill-opacity: 0 !important;
+}
+#DataTables_Table_1_paginate > ul {
+  visibility: hidden !important;
+}
+
+#DataTables_Table_2_paginate > ul {
+  visibility: hidden !important;
+}
+
+#DataTables_Table_1_length {
+  visibility: hidden !important;
+}
+
+#DataTables_Table_2_length {
+  visibility: hidden !important;
+}
+
 .btn-default {
   background-color:rgba(134, 199, 194, 0.02) !important;
 }

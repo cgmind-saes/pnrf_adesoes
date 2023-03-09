@@ -62,7 +62,8 @@ plan_recs <- read_xlsx("dados/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx",
 
 
 monextradrac <-
-  base_propostas%>%dplyr::filter(estadual == T)%>%
+  base_propostas%>%dplyr::filter(estadual == T)%>%dplyr::group_by(`UF do Fundo`)%>%
+  summarize_all(last)%>%
   select(-UF)%>%
   rename(UF = `UF do Fundo`)%>%select(UF,`Nº da Proposta`,Situação,`Nome completo do Responsável pelo Cadastro:`,
                                       `Cargo:`,`Telefone: (xx) xxxx-xxxx`,`E-mail:`)%>%
@@ -73,15 +74,16 @@ monextradrac <-
     estados_siglas%>%
       rename(UF=uf)%>%
       anti_join(base_propostas%>%dplyr::filter(estadual==T),by = c("UF"="UF do Fundo"))%>%mutate(`Nº da Proposta` = 'n.d.',
-                                       Cadastrador="n.d.",
-                                       Situação= "Não iniciado",
-                                       Cargo ='n.d.',Telefone ='n.d.',email ='n.d.'))%>%
+                                                                                                 Cadastrador="n.d.",
+                                                                                                 Situação= "Não iniciado",
+                                                                                                 Cargo ='n.d.',Telefone ='n.d.',email ='n.d.'))%>%
   select(-latitude,-longitude)%>%
   left_join(
     plan_recs%>%select(SIGLA,5)%>%rename(`Valor do recurso`=`Proporção Per Capita`),
-            by=c("UF" = "SIGLA"))%>%
+    by=c("UF" = "SIGLA"))%>%
   mutate(Situação = case_when(Situação == "Incompleta" ~ "Em elaboração",
                               T ~ Situação))
+
 
 
 
