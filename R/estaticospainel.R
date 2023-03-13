@@ -1,3 +1,6 @@
+atualwd <- getwd()
+
+setwd(gsub("nrf.*$","nrf/",atualwd))
 recortes <- c("NO_REGIAO","CO_UF_SIGLA","CO_REGIAO_SAUDE","NU_MUN_HOSP","CO_CNES")
 names(recortes) <- c("Região","UF","Região Saúde","Município","Estabelecimento")
 
@@ -207,3 +210,4 @@ aih_por_uf <- readRDS("dados/aih_pnrf_por_uf.rds")
 #
 
 
+setwd(atualwd)

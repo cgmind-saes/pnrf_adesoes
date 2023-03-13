@@ -1,3 +1,6 @@
+atualwd <- getwd()
+setwd(gsub("nrf.*$","nrf/",atualwd))
+
 "https://saips.saude.gov.br/relatorios/gerar-relatorio-propostas"
 
 estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")
@@ -93,3 +96,4 @@ print(nrow(monextradrac))
 
 # download.file("https://www.gov.br/saude/pt-br/composicao/saes/saips/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx","dados/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx",
 #               method="auto")
+setwd(atualwd)

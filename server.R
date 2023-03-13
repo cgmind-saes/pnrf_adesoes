@@ -298,7 +298,11 @@ server <- function(input, output, session) {
 
   output$plano_ajustes <- renderFlashCard({
     dadel <- data.frame(front = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,Situação %in% situacoes_propostas[c(4:5,21,25)]))),"planos em ajustes"),
-                        back = c(as.character(nrow(base_propostas%>%dplyr::filter(estadual == T,!(Situação %in% situacoes_propostas[c(4:5,21,25)])))),"sem plano em ajustes"))
+                        back = c("",
+                                 paste("<td width=200px height=143px>",(base_propostas%>%
+                                                                          dplyr::filter(estadual == T,Situação %in% situacoes_propostas[c(4:5,21,25)])%>%
+                                                                          select(`UF do Fundo`)%>%arrange())$`UF do Fundo`,
+                                       collapse = "&nbsp;</td>")))
     flashCard(dadel,frontColor = paleta7[11],
               front_text_color = "white", backColor = paleta2023[2])
   })

@@ -13,7 +13,7 @@ csl: bib/ibict-abnt.csl                            # Path to reference style fil
 always_allow_html: true
 ### Settings for rendering the document:
 output: 
-  cgmindmodelos::pdf_report:
+  cgmindmodelos::pdf_simple:
 #    keep_tex:true
     toc: false
     includes:
@@ -37,6 +37,8 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE,
 # Load all your packages that you need later
 library(knitr)
 library(tidyverse)
+library(DiagrammeR)
+library(kableExtra)
 source("../../requ.R")
 ```
 
@@ -52,10 +54,10 @@ knitr::write_bib(
 ```{r carrega-dados,include=F}
 source("../../R/paletas.R") 
 source("../../R/utils.R")
-source("../../RR/adesao_monitora.R")
+source("../../R/adesao_monitora.R")
 source("../../R/paletas.R")
-source("../../RR/estaticospainel.R")
-source("../../RR/filas_planilhas.R")
+source("../../R/estaticospainel.R")
+source("../../R/filas_planilhas.R")
 situacoes_propostas <- c(
   "Incompleta","Enviada para o MS","Em análise","Em diligência",
   "Em reanálise","Rejeitada","Aprovada","Paga","Gerada Minuta PRT/Memo",
@@ -65,22 +67,44 @@ situacoes_propostas <- c(
   "Reenviada para o MS - Documentos Complementares","Em reanálise - Documentos Complementares",
   "Cancelada","Suspensa","Rejeitada por não atendimento da diligência",
   "Em diligência - Documentos Complementares")
+pl_nem_comecou <- length(estados_siglas$nome[!(estados_siglas$nome %in% unique(base_propostas$Uf))])
 
 pl_elab <- nrow(dplyr::filter(base_propostas,estadual == T,Situação %in% c("Incompleta","A Liberar")))-2
 pl_cibs <- nrow(base_propostas|>dplyr::filter(estadual == T,`Anexe Resolução CIB ou Colegiado de Gestão:` != "---"))
 pl_saips <- nrow(dplyr::filter(base_propostas,estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---"))
+pl_enviados <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Enviada para o MS"))
+pl_reenviados <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Reenviada para o MS"))
+
 pl_analise <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Em análise"))
 pl_ajustes <- nrow(dplyr::filter(base_propostas,estadual == T,Situação %in% situacoes_propostas[c(4:5,21,25)]))
 pl_diligencia <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == situacoes_propostas[4]))
 
 pl_aprovado <- nrow(dplyr::filter(base_propostas,estadual == T,Situação == "Aprovada"))
 
+uf_nem_comecou <- estados_siglas$uf[!(estados_siglas$nome %in% unique(base_propostas$Uf))]
+uf_elab <-unique(dplyr::filter(base_propostas,estadual == T,Situação %in% c("Incompleta","A Liberar"))$`UF do Fundo`)
+uf_cibs <- unique(dplyr::filter(base_propostas,estadual == T,`Anexe Resolução CIB ou Colegiado de Gestão:` != "---")$`UF do Fundo`)
+uf_saips <- unique(dplyr::filter(base_propostas,estadual == T,`Plano de atendimento - Importe planilha de cumprimento do artigo 6 da PT.\nDisponível em https://www.gov.br/saude/pt-br/composicao/saes/saips/manuais-gerais-do-sistema-saips` != "---")$`UF do Fundo`)
+uf_enviados <- unique(dplyr::filter(base_propostas,estadual == T,Situação == "Enviada para o MS")$`UF do Fundo`)
+uf_reenviados <- unique(dplyr::filter(base_propostas,estadual == T,Situação == "Reenviada para o MS")$`UF do Fundo`)
+
+uf_analise <- unique(dplyr::filter(base_propostas,estadual == T,Situação == "Em análise")$`UF do Fundo`)
+uf_ajustes <- unique(dplyr::filter(base_propostas,estadual == T,Situação %in% situacoes_propostas[c(4:5,21,25)])$`UF do Fundo`)
+uf_diligencia <- unique(dplyr::filter(base_propostas,estadual == T,Situação == situacoes_propostas[4])$`UF do Fundo`)
+
+uf_aprovado <- unique(dplyr::filter(base_propostas,estadual == T,Situação == "Aprovada")$`UF do Fundo`)
+
+
 pegatp <- function(x) {
   length(unique((filas|>filter(UF == x))$NO_PROCEDIMENTO)) 
 }
 
 pegacir <- function(x){
-  format(round(sum((filas|>dplyr::filter(UF == x))$`Qtde de cirurgias a serem feitas no prazo pactuado`),0),scientific=F,big.mark=".",decimal.mark=",")
+  format(sum(round((filas|>dplyr::filter(UF == x))$`Qtde de cirurgias a serem feitas no prazo pactuado`),0),scientific=F,big.mark=".",decimal.mark=",")
+}
+
+pegafil <- function(x){
+  format(sum(round((filas|>dplyr::filter(UF == x))$`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`),0),scientific=F,big.mark=".",decimal.mark=",")
 }
 
 top5_f <- \(x) {
@@ -89,69 +113,188 @@ top5_f <- \(x) {
       summarize(Fila = sum(round(`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`,0)),
         "Cirurgias a realizar" = sum(round(`Qtde de cirurgias a serem feitas no prazo pactuado`,0)),
         UFs = toString(unique(UF)), .groups = 'drop')|>
-      arrange(desc(`Cirurgias a realizar`),desc(Fila))|>
-      mutate(Perc = format(fnx(100*`Cirurgias a realizar`/sum(`Cirurgias a realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
+      arrange(desc(`Cirurgias a realizar`),desc(Fila))
    
    
 
     names(filamostra) <- c("Procedimento","Fila","Cirurgias a realizar","UFs","%")
     
+    
     filamostra$Procedimento <- gsub(" - NA"," - procedimento fora do rol",filamostra$Procedimento)
-    kable(filamostra[1:5,c(1:3,5)],caption = paste("Procedimentos previstos na fila - Top 5 -",estados_siglas[estados_siglas$uf == x,]$nome),
-            align = c("|p{5.4cm}","p{1cm}","p{2.5cm}","p{1cm}|")) |>
-  kableExtra::kable_styling(bootstrap_options = "striped",
+    
+    tg <- function(x){"Total Geral"}
+    
+     filatabt <- filamostra%>%summarize(across(where(is.numeric),sum),across(where(is.character),tg))%>%select(-UFs)
+
+     filamostra%<>%bind_rows(filatabt)
+     filamostra%<>%
+      mutate(Perc = format(fnx(200*`Cirurgias a realizar`/sum(`Cirurgias a realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
+    
+    kable(filamostra[c(1:5,nrow(filamostra)),c(1:3,5)],caption = paste("Top 5 dos procedimentos cirúrgicos planejados -",estados_siglas[estados_siglas$uf == x,]$nome),
+            align = c('l','c','c','c')) |>
+  kable_styling(bootstrap_options = "striped",
                             latex_options =
                               c("striped","repeat_header"),
                             stripe_color = paleta2023[7],
                             full_width = F) |> 
-      kableExtra::row_spec(0, background = paleta2023[3],color="white")  
+      row_spec(0, background = paleta2023[3],color="white")  |> 
+      row_spec(6, background = paleta2023[3],color="white")  |>
+    column_spec(1,width= "5.4cm")|>column_spec(2,width= "1cm")|>
+      column_spec(3,width= "2.5cm")|> column_spec(4,width= "1cm")
 
 }
+
+
 
 pi_tp <- pegatp("PI")
 ma_tp <- pegatp("MA")
 ba_tp <- pegatp("BA")
 es_tp <- pegatp("ES")
 ro_tp <- pegatp("RO")
+ac_tp <- pegatp("AC")
+ap_tp <- pegatp("AP")
+df_tp <- pegatp("DF")
+ce_tp <- pegatp("CE")
 
 pi_cir <- pegacir("PI")
 ma_cir <- pegacir("MA")
 ba_cir <- pegacir("BA")
 es_cir <- pegacir("ES")
 ro_cir <- pegacir("RO")
+ac_cir <- pegacir("AC")
+ap_cir <- pegacir("AP")
+df_cir <- pegacir("DF")
+ce_cir <- pegacir("CE")
 
 top5_pi <- top5_f("PI")
 top5_ma <- top5_f("MA")
 top5_ba <- top5_f("BA")
 top5_ro <- top5_f("RO")
 top5_es <-  top5_f("ES")
+top5_ac <-  top5_f("AC")
+top5_ap <-  top5_f("AP")
+top5_df <-  top5_f("DF")
+top5_ce <- top5_f("CE")
+
+ba_fil <- pegafil("BA")
+ma_fil <- pegafil("MA")
+pi_fil <- pegafil("PI")
+es_fil <- pegafil("ES")
+ro_fil <- pegafil("RO")
+ac_fil <- pegafil("AC")
+ap_fil <- pegafil("AP")
+df_fil <- pegafil("DF")
+ce_fil <- pegafil("CE")
 
 ```
 
 # Resumo da Adesão Inicial ao Programa Nacional de Redução de Filas
 
-Situação dos planos no SAIPS:
+## Situação geral da elaboração dos planos no SAIPS:
 
--   `r pl_elab` com situação incompleta ou a liberar(prévios ao envio para o MS);
+- `r pl_nem_comecou` UF ainda não iniciou o processo no SAIPS `r ifelse(length(uf_nem_comecou)>0,paste0("(",uf_nem_comecou,")"),"")`);
 
--   `r pl_cibs` aprovados na CIB;
+-   `r pl_elab` com situação incompleta de preenchimento no SAIPS `r ifelse(length(uf_elab)>0,paste0("(",paste(uf_elab,collapse=", "),")"),"")`;
 
--   `r pl_saips` planos enviados ao SAIPS;
+    -   `r pl_cibs` já informada/anexada a aprovação na CIB `r ifelse(length(uf_cibs)>0,paste0("(",paste(uf_cibs,collapse=", "),")"),"")`;
 
--   `r pl_analise` plano(s) em análise;
+-  `r pl_enviados` planos enviados para o MS `r ifelse(length(uf_enviados)>0,paste0("(",paste(uf_enviados,collapse=", "),")"),"")`;
 
--   `r pl_diligencia` plano(s) em diligência ;
+-  `r pl_reenviados` plano(s) reenviado(s) para o MS `r ifelse(length(uf_reenviados)>0,paste0("(",paste(uf_reenviados,collapse=", "),")"),"")`;
 
--   `r pl_aprovado` planos aprovados;
+-   `r pl_analise` plano(s) em análise `r ifelse(length(uf_analise)>0,paste0("(",paste(uf_analise,collapse=", "),")"),"")`;
+
+-   `r pl_diligencia` plano(s) em diligência `r ifelse(length(uf_diligencia)>0,paste0("(",paste(uf_diligencia,collapse=", "),")"),"")`;
+
+-   `r pl_aprovado` planos aprovados (`r uf_aprovado`).
+
+```{r diagrama,echo = F,fig.cap = "Diagrama 1: Situação no SAIPS", dev='png'}
+arqdiag <- "img/diagrama.png"
+# DiagrammeR(paste0("graph LR
+# A[<center><bold>",1,"</bold><br>Não Iniciado</center>] --> B(<center><bold>",pl_elab,"</bold><br>Incompletos</center>)
+#              B --> C{<center><bold>",pl_enviados,"</bold><br> Enviado ao MS</center>}
+#              C --> D[<center><bold>",pl_analise,"</bold><br> Em análise</center>]
+#              C --> E[<center><bold>",pl_diligencia,"</bold><br> Em diligência</center>]
+#              D  -->F{<center><bold>",pl_aprovado,"</bold><br> Aprovados</center>}
+#              E -->|reajuste|B
+#              D -->|reajuste|B
+#                   E -->F",collapse=""))
+knitr::include_graphics(arqdiag,dpi=200)
 
 
-O total de procedimentos nas filas informadas é de: `r fni(round(sum(filas[,"Qtde de cirurgias a serem feitas no prazo pactuado"],na.rm=T))) `
 
-    # Análise sintética dos planos estaduais enviados ao MS
+
+```
+
+## Informações consolidadas sobre as filas enviadas pelo SAIPS
+
+A quantidade de solicitações de procedimentos informadas nas filas até o dia 31/12/22 é  `r fni(round(sum(filas[,"QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22"],na.rm=T))) ` .
+
+O total de procedimentos com realização prevista informada é de: `r fni(sum(round(filas[,"Qtde de cirurgias a serem feitas no prazo pactuado"]),na.rm=T)) ` . 
+
+A redução da fila, em média, é de `r fnx(round(100*(sum(round(filas[,"Qtde de cirurgias a serem feitas no prazo pactuado"]),na.rm=T)/sum(filas[,"QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22"],na.rm=T))))`%.
+
+
+```{r tabelageral}
+   filamostra <- fila_mn%>%left_join(estados_siglas,by = c("UF" = "uf"))%>%select(nome,fila,cirurgias)%>%
+  rename("Unidade Federativa" = nome,"Fila até 31/12/22"=fila,
+         "Cirurgias a Realizar"=cirurgias)%>%
+  mutate("% do total de cirurgias a realizar" = round(200*`Cirurgias a Realizar`/sum(`Cirurgias a Realizar`),2))
+
+filamostra[is.na(filamostra$`Unidade Federativa`),]$`Unidade Federativa` <- "Total Geral"
+
+ filamostra%<>%
+      mutate(across(where(is.numeric),))%>%
+   mutate(across(2:3,fni),across(4,fnx))
+   
+ 
+    kable(filamostra,caption = "Fila e Cirurgias por UF",
+            align = c('l','c','c','c')) |>
+  kable_styling(bootstrap_options = "striped",
+                            latex_options =
+                              c("striped","repeat_header"),
+                            stripe_color = paleta2023[7],
+                            full_width = F) |> 
+      row_spec(0, background = paleta2023[3],color="white")  |> 
+    row_spec(nrow(filamostra), background = paleta2023[3],color="white")  |>
+    column_spec(1,width= "2.4cm")|>column_spec(2,width= "2cm")|>
+      column_spec(3,width= "3cm")|> column_spec(4,width= "2cm")
+```
+
+
+```{r tabela_geral_top10}
+  filamostra <- filas%>%
+      filter(!is.na(`PROCEDIMENTO CIRÚRGICO`))%>%
+      group_by(paste(paste0(0,fni(`CÓDIGO DO PROCEDIMENTO NO SIGTAP`)), str_to_sentence(NO_PROCEDIMENTO), sep =" - "))%>%
+      summarize(Fila = sum(round(`QUANTIDADE DE SOLICITAÇÕES NA FILA ATÉ DIA 31/12/22`,0)),
+        "Cirurgias a Realizar" = sum(round(`Qtde de cirurgias a serem feitas no prazo pactuado`,0)),
+        UFs = toString((unique(UF))))%>%
+      arrange(desc(`Cirurgias a Realizar`),desc(Fila))%>%
+      mutate(Perc = format(fnx(100*`Cirurgias a Realizar`/sum(`Cirurgias a Realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
+
+    names(filamostra) <- c("Procedimento","Fila","Cirurgias a Realizar","UFs que prevêem realizar o procedimento","%")
+    kable(filamostra[1:10,],caption = "Top 10 dos procedimentos cirúrgicos planejados - consolidado - no rol",
+            align = c("l",rep("c",4))) |>
+  kable_styling(bootstrap_options = "striped",
+                            latex_options =
+                              c("striped","repeat_header"),
+                            stripe_color = paleta2023[7],
+                            full_width = F) |> 
+      row_spec(0, background = paleta2023[3],color="white")  |>
+    column_spec(1,width= "5.4cm")|>column_spec(2,width= "1cm")|>
+      column_spec(3,width= "2.5cm")|> column_spec(4,width= "2cm")|> 
+      column_spec(5,width= "1cm")
+```
+
+\newpage
+
+# Análise sintética dos planos estaduais enviados ao MS
 
 ## Piauí
 
-Foram contempladas as 11 regionais de saúde do PI. Note-se que três não receberam nesse primeiro repasse;
+Foram contempladas as 11 regionais de saúde do PI, entretanto três(03) não receberão nesse primeiro repasse, conforme pactuado em CIB.
+
+O tamanho da fila é de `r pi_fil`.
 
 São `r pi_tp` tipos de procedimentos cirúrgicos, totalizando `r pi_cir` cirurgias, a serem realizadas em 25 Estabelecimentos, sendo: 15 de gestão de serviço municipal e 10 estadual, destes todos realizam os 23 procedimentos, com exceção de 1, que realiza 16;
 
@@ -165,35 +308,48 @@ top5_pi
 
 ## Maranhão
 
-O tamanho da fila é de 47.488 cirurgias, o objetivo do plano é reduzir em 59%. São 483 tipos de procedimentos cirúrgicos, totalizando 28.241 cirurgias, no prazo de 10 meses. Os procedimentos cirúrgicos serão realizados em 65 Estabelecimentos, sendo: 41 de gestão de serviço municipal e 24 estadual, destes tem estabelecimentos que só vão realizar 01 tipo de procedimento enquanto tem outro q pode realizar até 184 procedimentos. De acordo com o cronograma financeiro, o Maranhão executará 100% dos recursos repassados nos meses de março à dezembro, tendo seu ápice no mês de maio!
+O tamanho da fila é de 47.488 cirurgias, o objetivo do plano é reduzir em 59%. 
 
-\newpage
+São `r ma_tp` tipos de procedimentos cirúrgicos, totalizando `r ma_cir` cirurgias, no prazo de 10 meses. 
 
-Top 5 dos procedimentos cirúrgicos são:
+Os procedimentos cirúrgicos serão realizados em 65 Estabelecimentos, sendo: 41 de gestão de serviço municipal e 24 estadual, destes há estabelecimentos que só vão realizar um(01) tipo de procedimento; por outro lado, há estabelecimento que pode realizar até 184 procedimentos. 
+
+De acordo com o cronograma financeiro, o Maranhão executará 100% dos recursos repassados nos meses de março à dezembro, tendo seu ápice no mês de maio!
+
 
 ```{r mafila,echo=F}
 top5_ma
 ```
 
+\newpage
 ## Bahia
 
-O tamanho da fila é de 82.675 cirurgias, o objetivo planejado é de reduzir em 59%.
+O tamanho da fila é de  `r ba_fil`  cirurgias, o objetivo planejado é de reduzir em 59%.
 
-São 316 tipos de procedimentos cirúrgicos, totalizando 48.470 cirurgias, no prazo de 03 à 12 meses (dependendo do tipo de procedimento). OBS 1: Tem procedimentos com o prazo de redução proposto para 12 meses, no entanto é necessário verificar uma vez q o cronograma financeiro é para 10 meses. OBS 2: o procedimento 405050364 referente ao tratamento cirúrgico de Pterígio tem uma fila de 10.370 e foi planejado a realização de 5.185 cirurgias, no entanto o mesmo não está no rol de procedimento contemplados pelo Programa, além disso esse procedimento é o segundo mais demandado, como pode-se observar na tabela abaixo. Caso não seja considerado esse procedimento, os números da Bahia sofrerão alterações.
+São  `r ba_tp`  tipos de procedimentos cirúrgicos, totalizando  `r ba_cir`  cirurgias, no prazo de 03 a 12 meses (dependendo do tipo de procedimento). 
+
+ - OBS 1: Há procedimentos com o prazo de redução proposto para 12 meses, no entanto é necessário verificar uma vez q o cronograma financeiro é para 10 meses. 
+ - OBS 2: O procedimento 04.05.05.0364, referente ao tratamento cirúrgico de Pterígio tem uma fila de 10.370 e foi planejada a realização de 5.185 cirurgias. No entanto, o mesmo não está no rol de procedimentos contemplados pelo Programa. Mas esse procedimento é o segundo mais demandado, como se observa na tabela abaixo. Caso não seja considerado esse procedimento, os números da Bahia sofrerão alterações.
 
 Os procedimentos cirúrgicos poderão ser realizados em 189 Estabelecimentos.
 
-De acordo com o cronograma financeiro, a Bahia executará 100% dos recursos repassados nos meses de março à dezembro.
+De acordo com o cronograma financeiro, a Bahia executará 100% dos recursos repassados nos meses de março a dezembro.
 
-Top 5 dos procedimentos cirúrgicos são:
+
 
 ```{r bafila,echo=F}
-top5_ba |> kableExtra::row_spec(2, background = paleta2023[4],color="white")  
+top5_ba |> row_spec(2, background = paleta2023[4],color="white")  
 ```
 
-## Roraima
+## Rondônia
 
-São `r ro_tp` tipos de procedimentos cirúrgicos, totalizando `r ro_cir` cirurgias, a serem realizadas. Top 5 dos procedimentos cirúrgicos são:
+O tamanho da fila é de `r ro_fil` cirurgias, o objetivo do plano é reduzir em 80%.
+
+São `r ro_tp` tipos de procedimentos cirúrgicos, totalizando `r ro_cir` cirurgias, a serem realizadas no prazo de 8 meses. 
+
+Todos os procedimentos cirúrgicos serão realizados no Hospital de Retaguarda de Rondônia de gestão de serviço estadual.
+
+De acordo com o cronograma financeiro, Rondônia executará 100% dos recursos repassados nos meses de maio a novembro.
 
 ```{r rofila,echo=F}
  top5_ro
@@ -201,14 +357,88 @@ São `r ro_tp` tipos de procedimentos cirúrgicos, totalizando `r ro_cir` cirurg
 
 ## Espírito Santo
 
-São `r length(unique((filas|>filter(UF == "ES"))$NO_PROCEDIMENTO))` tipos de procedimentos cirúrgicos, totalizando `r round(sum(filas|>filter(UF == "ES")|>dplyr::select("Qtde de cirurgias a serem feitas no prazo pactuado"),na.rm=T),0)` cirurgias, a serem realizadas.
+O tamanho da fila é de `r es_fil` cirurgias.
 
-Top 5 dos procedimentos cirúrgicos são:
+O objetivo do plano é reduzi-la em 69% .
+
+
+São `r es_tp` tipos de procedimentos cirúrgicos, totalizando `r es_cir` cirurgias, a serem realizadas no prazo de 10 meses.
+
+
+Todos os procedimentos cirúrgicos serão realizados pela Secretaria de Estado da Saúde.
+
+De acordo com o cronograma financeiro, o Espírito Santo executará 99,99% dos recursos repassados nos meses de março a dezembro, de maneira equitativa (10%).
+
+Não enviou o plano de monitoramento!
+
+ - OBS 1: Há um(01) procedimento (04.13.04.0178: Tratamento cirúrgico de lesões extensas com perda de substância cutânea) que está no planejamento, mas não está no rol de procedimentos contemplados pelo Programa. Para o mesmo, apresenta-se 54 solicitações na fila de espera e o planejamento de realização de 54 cirurgias.
 
 ```{r esfila,echo=F}
  top5_es
 ```
 
+## Amapá
+
+As planilhas foram enviadas sem preenchimento!
+
+
+<!-- ```{r apfila,echo=F} -->
+<!--  top5_ac -->
+<!-- ``` -->
+
+
+## Acre
+
+O tamanho da fila é de `r ac_fil` cirurgias. O objetivo do plano é reduzir em 42,5%. 
+
+São `r ac_tp` tipos de procedimentos cirúrgicos, totalizando `r ac_cir` cirurgias. 
+
+Os procedimentos cirúrgicos serão realizados por 06 Estabelecimentos.
+
+O cronograma financeiro está incompleto!
+
+- OBS 1: O prazo para a redução do tamanho da fila não foi preenchido!
+
+
+```{r acfila,echo=F}
+ top5_ac
+```
+
+<!-- ## Distrito Federal -->
+
+<!-- O tamanho da fila é de `r df_fil` cirurgias.  -->
+
+<!-- São `r df_tp` tipos de procedimentos cirúrgicos, totalizando `r df_cir` cirurgias. -->
+
+
+<!-- O cronograma financeiro está incompleto! -->
+
+<!-- As planilhas foram enviadas em PDF! -->
+
+<!-- - OBS 1: O prazo para a redução do tamanho da fila está em 12 meses! -->
+
+
+<!-- ```{r dffila,echo=F} -->
+<!--  top5_df -->
+<!-- ``` -->
+
+<!-- ## Ceará^[A informação é do plano estadual publicado, não é informação do SAIPS] -->
+
+<!-- O tamanho da fila é de `r ce_fil` cirurgias.  -->
+
+<!-- São `r ce_tp` tipos de procedimentos cirúrgicos, totalizando `r ce_cir` cirurgias. -->
+
+<!-- As planilhas nesta análise são do programa estadual, não formalmente do SAIPS! -->
+
+
+<!-- ```{r cefila,echo=F} -->
+<!--  top5_ce|> row_spec(1, background = paleta2023[4],color="white")   -->
+<!-- ``` -->
+
+
+\newpage
+
+# Informações dos planos estaduais no SAIPS
 ```{r tabela1,echo = F}
 
 names(monextradrac) <- str_to_sentence(names(monextradrac))
@@ -224,10 +454,11 @@ monextradrac$UF <- str_to_upper(monextradrac$UF)
 kable(arrange(monextradrac[,c("Região","UF","Situação","Valor do recurso","Cadastrador","Telefone")],Região,Cadastrador %in% c("n.d.","---")),
       col.names=names(monextradrac[,c("Região","UF","Situação","Valor do recurso","Cadastrador","Telefone")]),
       align = c("|p{1.4cm}","p{1cm}","p{3cm}","p{3cm}","p{3.5cm}","p{2.5cm}|"),
-      caption = "Informações sobre a adesão ao Programa Nacional de Redução de Filas") |>
-  kableExtra::kable_styling(bootstrap_options = "striped",
+      caption = "Informações no SAIPS sobre a adesão ao Programa Nacional de Redução de Filas") |>
+  kable_styling(bootstrap_options = "striped",
                             latex_options =
                               c("striped","repeat_header"),
                             stripe_color = paleta2023[7],
-                            full_width = F)
+                            full_width = F)|>
+   row_spec(0, background = paleta2023[3],color="white")  
 ```
