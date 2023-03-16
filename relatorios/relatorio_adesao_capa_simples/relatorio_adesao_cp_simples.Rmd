@@ -1,20 +1,20 @@
 ---
 title: "\\huge Programa Nacional de Redução de Filas \\linebreak\\large Relatório de Adesões Estaduais"   
-author: "\\phantom{rb}\\linebreak CGMIND/SAES"
+author: "CGMIND/SAES     |     Ministério da Saúde"
 date: "\\rightline{`r Sys.setlocale('LC_ALL' , 'pt_BR.utf8')
 stringr::str_to_sentence(format.Date(Sys.time()-15400,'%A-feira,%d de %B de %Y, às %H horas'))`}"
 portuguese: "true"  
 ### Uncomment the following line if a summary should be shown after the title 
 # abstract: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-
+reportnumber: "3"
 ### Comment or remove the following two lines if NO references are used
 bibliography: [bib/references.bib, bib/packages.bib] # Path to bibliography files 
 csl: bib/ibict-abnt.csl                            # Path to reference style file
 always_allow_html: true
 ### Settings for rendering the document:
 output: 
-  cgmindmodelos::pdf_report:
-    keep_tex: true
+  cgmindmodelos::pdf_periodic:
+#    keep_tex:true
     toc: false
     includes:
       in_header: header.tex
@@ -22,6 +22,7 @@ output:
 ### Comment the next line if 'language: "en" ' and 'toc: true'
   #toc-title: "Sumário"    
 ---
+
 
 \renewcommand{\tablename}{Tabela}
 
@@ -52,6 +53,7 @@ knitr::write_bib(
 ```
 
 ```{r carrega-dados,include=F}
+quero_atualizar=F
 source("../../R/paletas.R") 
 source("../../R/utils.R")
 source("../../R/adesao_monitora.R")
@@ -129,7 +131,7 @@ top5_f <- \(x) {
 
      filamostra%<>%bind_rows(filatabt)
      filamostra%<>%
-      mutate(Perc = format(fnx(200*`Cirurgias a realizar`/sum(`Cirurgias a realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
+      mutate("%" = format(fnx(200*`Cirurgias a realizar`/sum(`Cirurgias a realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
     
     kable(filamostra[c(1:5,nrow(filamostra)),c(1:3,5)],caption = paste("Top 5 dos procedimentos cirúrgicos planejados -",estados_siglas[estados_siglas$uf == x,]$nome),
             align = c('l','c','c','c')) |>
@@ -193,7 +195,7 @@ ce_fil <- pegafil("CE")
 
 ## Situação geral da elaboração dos planos no SAIPS:
 
-- `r pl_nem_comecou` UF ainda não iniciou o processo no SAIPS `r ifelse(length(uf_nem_comecou)>0,paste0("(",uf_nem_comecou,")"),"")`);
+- `r pl_nem_comecou` UF ainda não iniciou o processo no SAIPS `r ifelse(length(uf_nem_comecou)>0,paste0("(",uf_nem_comecou,")"),"")`;
 
 -   `r pl_elab` com situação incompleta de preenchimento no SAIPS `r ifelse(length(uf_elab)>0,paste0("(",paste(uf_elab,collapse=", "),")"),"")`;
 
@@ -262,7 +264,7 @@ filamostra[is.na(filamostra$`Unidade Federativa`),]$`Unidade Federativa` <- "Tot
         "Cirurgias a Realizar" = sum(round(`Qtde de cirurgias a serem feitas no prazo pactuado`,0)),
         UFs = toString((unique(UF))))%>%
       arrange(desc(`Cirurgias a Realizar`),desc(Fila))%>%
-      mutate(Perc = format(fnx(100*`Cirurgias a Realizar`/sum(`Cirurgias a Realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
+      mutate("%" = format(fnx(100*`Cirurgias a Realizar`/sum(`Cirurgias a Realizar`)),decimal.mark=",",digits=1),across(where(is.numeric),fni))
 
     names(filamostra) <- c("Procedimento","Fila","Cirurgias a Realizar","UFs que prevêem realizar o procedimento","%")
     kable(filamostra[1:10,],caption = "Top 10 dos procedimentos cirúrgicos planejados - consolidado - no rol",
@@ -321,7 +323,6 @@ O tamanho da fila é de  `r ba_fil`  cirurgias, o objetivo planejado é de reduz
 São  `r ba_tp`  tipos de procedimentos cirúrgicos, totalizando  `r ba_cir`  cirurgias, no prazo de 03 a 12 meses (dependendo do tipo de procedimento). 
 
  - OBS 1: Há procedimentos com o prazo de redução proposto para 12 meses, no entanto é necessário verificar uma vez q o cronograma financeiro é para 10 meses. 
- - OBS 2: O procedimento 04.05.05.0364, referente ao tratamento cirúrgico de Pterígio tem uma fila de 10.370 e foi planejada a realização de 5.185 cirurgias. No entanto, o mesmo não está no rol de procedimentos contemplados pelo Programa. Mas esse procedimento é o segundo mais demandado, como se observa na tabela abaixo. Caso não seja considerado esse procedimento, os números da Bahia sofrerão alterações.
 
 Os procedimentos cirúrgicos poderão ser realizados em 189 Estabelecimentos.
 
@@ -330,7 +331,7 @@ De acordo com o cronograma financeiro, a Bahia executará 100% dos recursos repa
 
 
 ```{r bafila,echo=F}
-top5_ba |> row_spec(2, background = paleta2023[4],color="white")  
+top5_ba 
 ```
 
 ## Rondônia
@@ -407,7 +408,7 @@ O cronograma financeiro está incompleto!
 
 Os procedimentos cirúrgicos serão realizados por `r length(unique(cnesp$CNES))` Estabelecimentos.
 
-`r fnx(100*((cnesp|>dplyr::filter(UF == "DF")|>count("GESTÃO DO SERVIÇO"))[1,]$n)/nrow(cnesp|>dplyr::filter(UF == "DF")))`% dos procedimentos (`r fni((cnesp|>dplyr::filter(UF == "DF")|>count("GESTÃO DO SERVIÇO"))[1,]$n)`) serão realizados em estabelecimentos de gestão estadual.
+`r fnx(100*((cnesp|>dplyr::filter(UF == "DF")|>count("GESTÃO DO SERVIÇO"))[1,]$n)/nrow(cnesp|>dplyr::filter(UF == "DF")))`% dos tipos de procedimentos (`r fni((cnesp|>dplyr::filter(UF == "DF")|>count("GESTÃO DO SERVIÇO"))[1,]$n)`) serão realizados em estabelecimentos de gestão estadual.
 
 - OBS 1: O prazo para a redução do tamanho da fila está em 12 meses!
 

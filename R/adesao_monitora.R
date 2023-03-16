@@ -6,7 +6,7 @@ setwd(gsub("nrf.*$","nrf/",atualwd))
 estados_siglas <- read.csv("https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/estados.csv")
 
 #Lista arquivos
-propostas <- list.files(path="dados/propostas_mon/",pattern = "*.xlsx",full.names = T)
+propostas <- list.files(path="dados/propostas_mon/",pattern = "^rel.*.xlsx",full.names = T)
 
 if(!exists("base_propostas")){
 base_propostas <- read_xlsx("dados/propostas_mon/relatorio_propostas.xlsx")
@@ -89,11 +89,32 @@ monextradrac <-
 
 
 
+sitpropostas <- base_propostas%>%filter(!(`Nº da Proposta` %in% c(170321,170358,170700,170727)))%>%select(`UF do Fundo`,Situação,`Nº da Proposta`)%>%mutate(data_at =  as.POSIXlt(system(paste("date -r","dados/propostas_mon/relatorio_propostas.xlsx",'"+%Y-%m-%d %H:%M:%S"'),intern=T),tryFormats = "%Y-%m-%d %H:%M:%S")-15400)%>%
+  rename(uf = `UF do Fundo`,n_proposta = `Nº da Proposta`)
+arqstatprops <- "dados/propostas_mon/historico_status_propostas.csv"
+
+if (!file.exists(arqstatprops)){
+  write_csv2(sitpropostas,arqstatprops)
+} else if (last(read_csv2(arqstatprops)$data_at) !=
+           as.POSIXlt(system(paste("date -r","dados/propostas_mon/relatorio_propostas.xlsx",'"+%Y-%m-%d %H:%M:%S"'),intern=T),tryFormats = "%Y-%m-%d %H:%M:%S")-15400) {
+  write_csv2(sitpropostas,arqstatprops,append=T)
+}
 
 
+#baixa_filas <- sitpropostas%>%filter(Situação != "Incompleta")%>%select(uf,n_proposta)
 
-print(nrow(monextradrac))
 
+estado_propostas_filas <- read_csv2("dados/propostas_mon/historico_status_propostas.csv")%>%
+  pivot_wider(names_from=data_at,values_from=Situação)%>%
+  mutate(atualizado_recente = .[ncol(.)] != .[ncol(.)-1],
+         fila_nova_renov = atualizado_recente == T & .[ncol(.)] != "Incompleta" )
+
+baixa_filas <- estado_propostas_filas%>%filter(fila_nova_renov == T)%>%select(uf,n_proposta)
+
+if (nrow(baixa_filas)>0 & quero_atualizar) {
+  source("RR/baixa_fila.R")
+mapply(baixafila,baixa_filas$uf,baixa_filas$n_proposta)
+}
 # download.file("https://www.gov.br/saude/pt-br/composicao/saes/saips/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx","dados/plano-atendimento-perf-cir-eletiva-vrs-4a.xlsx",
 #               method="auto")
 setwd(atualwd)

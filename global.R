@@ -11,6 +11,7 @@ options(scipen=9999999)
 ## Carrega pacotes
 source("requ.R")
 source("R/utils.R")
+subgrupos <- readRDS("dados/subgrupos.rds")
 source("R/adesao_monitora.R")
 data_atualiza <- system(paste("date -r",propostas[2],'"+%Y-%m-%d %H:%M:%S"'),intern=T)
 

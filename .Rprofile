@@ -11,6 +11,7 @@ pacotes <- pacotes[-1]
 pacotesnovos <- pacotes[ !( pacotes %in% utils::installed.packages()[ , "Package" ] ) ]
 #if( length(pacotesnovos) > 1) utils::install.packages( pacotesnovos )
 
+quero_atualizar <- F
 
 sapply(pacotes, function (x) {
   suppressPackageStartupMessages(require(x[[1]],character.only = T))})
